@@ -26,9 +26,12 @@ void handleToggle() {
 
 void setup() {
   Serial.begin(115200);
+  //WiFi.persistent( false );
+  WiFi.persistent(false);
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(2000);
+    delay(20);
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
