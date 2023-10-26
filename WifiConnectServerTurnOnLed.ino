@@ -8,16 +8,46 @@ ESP8266WebServer server(80);
 
 const int ledPin = 2;
 int ledState = LOW;
-int data[] = {3, 7, 2, 5, 8, 4};
+int sensorData[] = {3, 7, 2, 5, 8, 4};
 int secondaryData[] = {3, 10, 12, 17, 25, 29};
+int dataLength = sizeof(sensorData)/ sizeof(sensorData[0]);
+
+String GetDataString(int inputData[], String key){
+    
+  String dataString = key + ": [";
+  for (int i = 0; i < dataLength; i++) {
+    dataString += String(inputData[i]);
+    if (i < dataLength -1) {
+      dataString += ", ";
+    }
+  }
+  dataString += "],";
+  Serial.println(dataLength);
+  return dataString;
+}
+
+String GetDataString(char* inputData[], String key){
+    
+  String dataString = key + ": [";
+  for (int i = 0; i < dataLength; i++) {
+    dataString += String(inputData[i]);
+    if (i < dataLength -1) {
+      dataString += ", ";
+    }
+  }
+  dataString += "],";
+  Serial.println(dataLength);
+  return dataString;
+}
 
 void handleRoot() {
+
   String html = "<html><head><meta charset='UTF-8'></head><body>";
   html += "<style>h1 {text-align: center;}</style>";
   html += "<h1> BẢNG THỐNG KÊ CÔNG SUẤT SỬ DỤNG ĐIỆN </h1>";
   html += "<p> TEST trạng thái BUILDIN LED : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
   html += "<p><a href='/toggle'>Bật/Tắt LED</a></p>";
-  html += "<canvas id='histogramChart' width='400' height='200'></canvas>";
+  html += "<canvas id='histogramChart' ></canvas>";
 
   // Add text field and button
   html += "<div>";
@@ -34,7 +64,7 @@ void handleRoot() {
   html += "    {";
   html += "      type: 'bar',";
   html += "      label: 'Công suất hằng ngày(kWh)',";
-  html += "      data: " + String("[") + data[0] + ", " + data[1] + ", " + data[2] + ", " + data[3] + ", " + data[4] + ", " + data[5] + "],";
+  html += GetDataString(sensorData, "data");
   html += "      backgroundColor: 'rgba(75, 192, 192, 0.2)',";
   html += "      borderColor: 'rgba(75, 192, 192, 1)',";
   html += "      borderWidth: 1";
@@ -42,10 +72,9 @@ void handleRoot() {
   html += "    {";
   html += "      type: 'line',";
   html += "      label: 'Tổng lượng dùng từ đầu tháng(kWh)',";
-  html += "      data: " + String("[") + secondaryData[0] + ", " + secondaryData[1] + ", " + secondaryData[2] + ", " + secondaryData[3] + ", " + secondaryData[4] + ", " + secondaryData[5] + "],";
+  html += GetDataString(secondaryData, "data");
   html += "      borderColor: 'rgba(255, 99, 132, 1)',";
   html += "      yAxisID: 'secondaryYAxis'";
-  //html += "      fontSize: 16";
   html += "    }";
   html += "  ]";
   html += "};";
@@ -68,7 +97,8 @@ void handleRoot() {
   html += "        beginAtZero: true,";
   html += "        title: {";
   html += "          display: true,";
-  html += "          text: 'Công suất hằng ngày(kWh)'";
+  html += "          text: 'Công suất hằng ngày(kWh)',";
+  //html += "          fontSize: 36";
   html += "        }";
   html += "      },";
   html += "      secondaryYAxis: {";
@@ -102,7 +132,7 @@ void setup() {
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(20);
+    delay(2000);
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
@@ -120,8 +150,10 @@ void setup() {
     Serial.println("Error setting up MDNS responder!");
   }
   Serial.println("mDNS responder started");
+  MDNS.addService("http", "tcp", 80);
 }
 
 void loop() {
+  MDNS.update();
   server.handleClient();
 }
