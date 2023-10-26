@@ -1,6 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-
+#include <ESP8266mDNS.h> 
 const char* ssid = "Steve'sWIFI";
 const char* password = "ji7ewg1k";
 
@@ -18,6 +18,13 @@ void handleRoot() {
   html += "<p> TEST trạng thái BUILDIN LED : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
   html += "<p><a href='/toggle'>Bật/Tắt LED</a></p>";
   html += "<canvas id='histogramChart' width='400' height='200'></canvas>";
+
+  // Add text field and button
+  html += "<div>";
+  html += "<input type='text' id='dataInput' placeholder='Nhập số liệu'>";
+  html += "<button onclick='addData()'>Xác nhận</button>";
+  html += "</div>";
+
   html += "<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js'></script>";
   html += "<script>";
   html += "var ctx = document.getElementById('histogramChart').getContext('2d');";
@@ -38,9 +45,20 @@ void handleRoot() {
   html += "      data: " + String("[") + secondaryData[0] + ", " + secondaryData[1] + ", " + secondaryData[2] + ", " + secondaryData[3] + ", " + secondaryData[4] + ", " + secondaryData[5] + "],";
   html += "      borderColor: 'rgba(255, 99, 132, 1)',";
   html += "      yAxisID: 'secondaryYAxis'";
+  //html += "      fontSize: 16";
   html += "    }";
   html += "  ]";
   html += "};";
+
+  // JavaScript function to add data from the text field
+  html += "function addData() {";
+  html += "  var newData = parseFloat(document.getElementById('dataInput').value);";
+  html += "  if (!isNaN(newData)) {";
+  html += "    data.datasets[1].data.push(newData);"; // Assuming 'data' is the secondary dataset
+  html += "    myChart.update();";
+  html += "  }";
+  html += "}";
+
   html += "var myChart = new Chart(ctx, {";
   html += "  type: 'bar',";
   html += "  data: data,";
@@ -98,6 +116,10 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
   Serial.println(WiFi.localIP());
+  if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
+    Serial.println("Error setting up MDNS responder!");
+  }
+  Serial.println("mDNS responder started");
 }
 
 void loop() {
