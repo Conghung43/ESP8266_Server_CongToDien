@@ -47,6 +47,25 @@ String GetDataString(char* inputData[], String key){
   return dataString;
 }
 
+int getLastElementAsInt(const String &input) {
+  // Check if the input string is empty
+  if (input.length() == 0) {
+    return -1; // or any default value or error code
+  }
+
+  // Get the last character from the input string
+  char lastChar = input.charAt(input.length() - 1);
+
+  // Check if the last character is a digit
+  if (isdigit(lastChar)) {
+    // Convert the last character to an integer
+    int lastElement = lastChar - '0';
+    return lastElement;
+  } else {
+    return -1; // or any default value or error code
+  }
+}
+
 // Save Json
 void saveJsonData() {
   if (SPIFFS.begin()) {
@@ -154,7 +173,7 @@ void handleRoot() {
   // Thêm trường nhập và xử lý sự kiện vào form
   html += "<form>";
   html += "<label for='level1'>Nhập thông tin:</label>";
-  html += "<input type='text' id='level1' onfocus='textFieldFocus()' onblur='textFieldBlur(1)' >";
+  html += "<input type='text' id='level1' onfocus='textFieldFocus()' onblur='textFieldBlur(this.id)' >";
   html += "<p id='status'>Status: Not Focused</p>";
   html += "</form>";
 
@@ -164,11 +183,11 @@ void handleRoot() {
   html += "  document.getElementById('status').innerText = 'Status: Focused';";
   html += "}";
   html += "function textFieldBlur(id) {";
-  //html += "  document.getElementById('status').innerText = 'Status: Not Focused' + id;";
-
-  html += "  var textField = document.getElementById('level'+id);";
-  html += "  var inputValue = textField.value;";
-  html += "  document.getElementById('result').innerText = 'Result: ' + inputValue;";
+  //html += "  var numericValue = getLastElementAsInt(id);";
+  html += "  document.getElementById('status').innerText = 'Status: Not Focused' + id;";
+  // html += "  var textField = document.getElementById('level'+id);";
+  // html += "  var inputValue = textField.value;";
+  // html += "  document.getElementById('status').innerText = 'Result: ' + inputValue;";
 
   html += "}";
   html += "</script>";
