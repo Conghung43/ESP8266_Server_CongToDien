@@ -3,10 +3,26 @@
 #include <ESP8266mDNS.h> 
 #include <FS.h> // Include the SPIFFS library to save data to flash
 #include <ArduinoJson.h> // Include the ArduinoJSON library
-
+#include <string>
 
 const char* ssid = "Steve'sWIFI";
 const char* password = "ji7ewg1k";
+
+int bac1 = 1728;
+int bac2 = 1786;
+int bac3 = 2074;
+int bac4 = 2612;
+int bac5 = 2919;
+int bac6 = 3015;
+
+int muc1 = 50;
+int muc2 = 100;
+int muc3 = 200;
+int muc4 = 300;
+int muc5 = 400;
+int muc6 = 900;
+
+
 IPAddress subnet(255, 255, 0, 0);			            // Subnet Mask
 IPAddress gateway(192, 168, 1, 1);			            // Default Gateway
 IPAddress local_IP(192, 168, 1, 184);			        // Static IP Address for ESP8266
@@ -180,64 +196,64 @@ void handleRoot() {
 
 html += "<table style='width: 100%; border: 1px solid black;'>";
 html += "<tr>";
-html += "<td style='text-align: center;'>Muc</td>";
-html += "<td style='text-align: center;'>Tu (Kwh)</td>";
-html += "<td style='text-align: center;'>Toi (Kwh)</td>";
-html += "<td style='text-align: center;'>Gia (Nghin dong)</td>";
-html += "<td style='text-align: center;'>So luong da dung (Kwh)</td>";
-html += "<td style='text-align: center;'>Don gia (Nghin dong)</td>";
+html += "<td style='text-align: center;'>Mức</td>";
+html += "<td style='text-align: center;'>Từ (Kwh)</td>";
+html += "<td style='text-align: center;'>Tới (Kwh)</td>";
+html += "<td style='text-align: center;'>Giá điện (Nghin dong)</td>";
+html += "<td style='text-align: center;'>Công suất sử dụng(Kwh)</td>";
+html += "<td style='text-align: center;'>Đơn giá(Nghin dong)</td>";
 html += "</tr>";
 //Muc 1
 html += "<tr>";
 html += "<td style='text-align: center;'>Muc 1</td>";
 html += "<td style='text-align: center;'>0</td>";
-html += "<td style='text-align: center;'><input type='text' id='to1' ></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia1'></td>";
+html += "<td style='text-align: center;'><input type='text' id='to1' placeholder='" + String(muc1) + "'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia1'  placeholder='" + String(bac1) + "'></td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "</tr>";
 //Muc 2
 html += "<tr>";
 html += "<td style='text-align: center;'>Muc 2</td>";
-html += "<td style='text-align: center;'>0</td>";
-html += "<td style='text-align: center;'><input type='text' id='to2'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia2'></td>";
+html += "<td style='text-align: center;'>" + String(muc1 + 1) + "</td>";
+html += "<td style='text-align: center;'><input type='text' id='to2' placeholder='" + String(muc2) + "'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia2' placeholder='" + String(bac2) + "'></td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "</tr>";
 //Muc 3
 html += "<tr>";
 html += "<td style='text-align: center;'>Muc 3</td>";
-html += "<td style='text-align: center;'>0</td>";
-html += "<td style='text-align: center;'><input type='text' id='to3'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia3'></td>";
+html += "<td style='text-align: center;'>" + String(muc2 + 1) + "</td>";
+html += "<td style='text-align: center;'><input type='text' id='to3' placeholder='" + String(muc3) + "'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia3' placeholder='" + String(bac3) + "'></td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "</tr>";
 //Muc 4
 html += "<tr>";
 html += "<td style='text-align: center;'>Muc 4</td>";
-html += "<td style='text-align: center;'>0</td>";
-html += "<td style='text-align: center;'><input type='text' id='to4'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia4'></td>";
+html += "<td style='text-align: center;'>" + String(muc3 + 1) + "</td>";
+html += "<td style='text-align: center;'><input type='text' id='to4' placeholder='" + String(muc4) + "'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia4' placeholder='" + String(bac4) + "'></td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "</tr>";
 //Muc 5
 html += "<tr>";
 html += "<td style='text-align: center;'>Muc 5</td>";
-html += "<td style='text-align: center;'>0</td>";
-html += "<td style='text-align: center;'><input type='text' id='to5'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia5'></td>";
+html += "<td style='text-align: center;'>" + String(muc4 + 1) + "</td>";
+html += "<td style='text-align: center;'><input type='text' id='to5' placeholder='" + String(muc5) + "'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia5' placeholder='" + String(bac5) + "'></td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "</tr>";
 //Muc 6
 html += "<tr>";
 html += "<td style='text-align: center;'>Muc 6</td>";
-html += "<td style='text-align: center;'>0</td>";
-html += "<td style='text-align: center;'><input type='text' id='to6'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia6'></td>";
+html += "<td style='text-align: center;'>" + String(muc5 + 1) + "</td>";
+html += "<td style='text-align: center;'><input type='text' id='to6' placeholder='" + String(muc6) + "'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia6' placeholder='" + String(bac6) + "'></td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "<td style='text-align: center;'>50</td>";
 html += "</tr>";
