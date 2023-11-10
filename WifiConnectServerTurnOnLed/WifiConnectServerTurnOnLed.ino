@@ -171,11 +171,89 @@ void handleRoot() {
   html += "</div>";
 
   // Thêm trường nhập và xử lý sự kiện vào form
+
   html += "<form>";
-  html += "<label for='level1'>Nhập thông tin:</label>";
+  html += "<label for='level1'>Muc 1 tu 0 - </label>";
   html += "<input type='text' id='level1' onfocus='textFieldFocus()' onblur='textFieldBlur(this.id)' >";
   html += "<p id='status'>Status: Not Focused</p>";
   html += "</form>";
+
+html += "<table style='width: 100%; border: 1px solid black;'>";
+html += "<tr>";
+html += "<td style='text-align: center;'>Muc</td>";
+html += "<td style='text-align: center;'>Tu (Kwh)</td>";
+html += "<td style='text-align: center;'>Toi (Kwh)</td>";
+html += "<td style='text-align: center;'>Gia (Nghin dong)</td>";
+html += "<td style='text-align: center;'>So luong da dung (Kwh)</td>";
+html += "<td style='text-align: center;'>Don gia (Nghin dong)</td>";
+html += "</tr>";
+//Muc 1
+html += "<tr>";
+html += "<td style='text-align: center;'>Muc 1</td>";
+html += "<td style='text-align: center;'>0</td>";
+html += "<td style='text-align: center;'><input type='text' id='to1' ></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia1'></td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "</tr>";
+//Muc 2
+html += "<tr>";
+html += "<td style='text-align: center;'>Muc 2</td>";
+html += "<td style='text-align: center;'>0</td>";
+html += "<td style='text-align: center;'><input type='text' id='to2'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia2'></td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "</tr>";
+//Muc 3
+html += "<tr>";
+html += "<td style='text-align: center;'>Muc 3</td>";
+html += "<td style='text-align: center;'>0</td>";
+html += "<td style='text-align: center;'><input type='text' id='to3'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia3'></td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "</tr>";
+//Muc 4
+html += "<tr>";
+html += "<td style='text-align: center;'>Muc 4</td>";
+html += "<td style='text-align: center;'>0</td>";
+html += "<td style='text-align: center;'><input type='text' id='to4'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia4'></td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "</tr>";
+//Muc 5
+html += "<tr>";
+html += "<td style='text-align: center;'>Muc 5</td>";
+html += "<td style='text-align: center;'>0</td>";
+html += "<td style='text-align: center;'><input type='text' id='to5'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia5'></td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "</tr>";
+//Muc 6
+html += "<tr>";
+html += "<td style='text-align: center;'>Muc 6</td>";
+html += "<td style='text-align: center;'>0</td>";
+html += "<td style='text-align: center;'><input type='text' id='to6'></td>";
+html += "<td style='text-align: center;'><input type='text' id='gia6'></td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "<td style='text-align: center;'>50</td>";
+html += "</tr>";
+//Tong so
+html += "<tr>";
+html += "<td style='text-align: center;'> </td>";
+html += "<td style='text-align: center;'>  </td>";
+html += "<td style='text-align: center;'>  </td>";
+html += "<td style='text-align: center;'>  </td>";
+html += "<td style='text-align: center;'> Tong </td>";
+html += "<td style='text-align: center;'> 500 </td>";
+html += "</tr>";
+html += "</table>";
+
+
+
 
   // OnFocus text field
   html += "<script>";
