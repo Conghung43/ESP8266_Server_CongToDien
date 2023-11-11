@@ -32,6 +32,8 @@ int sensorData[] = {3, 7, 2, 5, 8, 4};
 int secondaryData[] = {3, 10, 12, 17, 25, 29};
 int dataLength = sizeof(sensorData)/ sizeof(sensorData[0]);
 
+struct tm internetTime;
+
 String GetDataString(int inputData[], String key){
     
   String dataString = key + ": [";
@@ -79,96 +81,69 @@ int getLastElementAsInt(const String &input) {
   }
 }
 
+unsigned long convertStructTmToUnsignedLong(struct tm currentTime) {
+    time_t time = mktime(&currentTime); // Convert struct tm to time_t
+    return (unsigned long)time; // Convert time_t to unsigned long
+}
+
+struct tm convertUnsignedLongToStructTm(unsigned long timestamp) {
+    time_t time = (time_t)timestamp; // Convert unsigned long to time_t
+    struct tm convertedTime = *localtime(&time); // Convert time_t to struct tm
+    return convertedTime;
+}
 
 unsigned long previousMillis = 0;  // Variable to store time
 const long interval = 1000;  // Interval for 1 second
+unsigned long diffMillis = 0;
 void getBoardOwnTimer(){
 
-  unsigned long currentMillis = millis();  // Get the current time
+  unsigned long currentMillis = millis();// + diffMillis;  // Get the current time
 
   if (currentMillis - previousMillis >= interval) {
     // If a second has passed
+    //Serial.print(millis());
     previousMillis = currentMillis;
-
-    // Perform an action every second, for example, print the time
-    int seconds = (currentMillis / 1000) % 60;
-    int minutes = (currentMillis / (1000 * 60)) % 60;
-    int hours = (currentMillis / (1000 * 60 * 60)) % 24;
-
-    unsigned long days = currentMillis / (1000ul * 60ul * 60ul * 24ul);
-    int years = 1970 + days / 365;
-    int months = 1 + (days % 365) / 30;
-    int day = 1 + (days % 365) % 30;
-
-    Serial.print(years);
-    Serial.print("/");
-    if (months < 10) {
-      Serial.print("0");
-    }
-    Serial.print(months);
-    Serial.print("/");
-    if (day < 10) {
-      Serial.print("0");
-    }
-    Serial.print(day);
-    Serial.print(" ");
-    if (hours < 10) {
-      Serial.print("0");
-    }
-
-    Serial.print(hours);
-    Serial.print(":");
-    Serial.print(minutes);
-    Serial.print(":");
-    Serial.println(seconds);
+    //Serial.println(currentMillis);
+    unsigned long newMillis = convertStructTmToUnsignedLong(internetTime) + currentMillis/1000;
+    printTime(convertUnsignedLongToStructTm(newMillis));
+    return;
   }
 }
 
-unsigned long convertToMillis(int year, int month, int day, int hour, int minute, int second) {
-  struct tm timeinfo;
-  timeinfo.tm_year = year - 1900;
-  timeinfo.tm_mon = month - 1;
-  timeinfo.tm_mday = day;
-  timeinfo.tm_hour = hour;
-  timeinfo.tm_min = minute;
-  timeinfo.tm_sec = second;
-  return mktime(&timeinfo) * 1000UL;
-}
+struct tm getInternetTime() {
 
-void getInternetTime() {
-
-  configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov");
-  time_t now = time(nullptr);
-  Serial.println(ctime(&now));
-  return;
-
-  // configTime(0, 0, "pool.ntp.org", "time.nist.gov");
-  // struct tm timeinfo;
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  //struct tm internetTime;
   
-  // if (!getLocalTime(&timeinfo)) {
-  //   Serial.println("Failed to obtain time");
-  //   return;
-  // }
+  while (!getLocalTime(&internetTime)) {
+    Serial.println("Failed to obtain time");
+    //return timeinfo;
+  }
 
-  // // GMT+7 adjustment
-  // time_t now = mktime(&timeinfo) + 7 * 3600;
-  // localtime_r(&now, &timeinfo);
-
-  // Serial.print("Current date and time: ");
-  // Serial.print(timeinfo.tm_year + 1900); // Year since 1900
-  // Serial.print("-");
-  // printDigits(timeinfo.tm_mon + 1); // Month starts from 0
-  // Serial.print("-");
-  // printDigits(timeinfo.tm_mday); // Day of the month
-  // Serial.print(" ");
-  // printDigits(timeinfo.tm_hour); // Hours
-  // Serial.print(":");
-  // printDigits(timeinfo.tm_min); // Minutes
-  // Serial.print(":");
-  // printDigits(timeinfo.tm_sec); // Seconds
-  // Serial.println();
+  // GMT+7 adjustment
+  time_t now = mktime(&internetTime) + 7 * 3600;
+  localtime_r(&now, &internetTime);
+  //printTime(timeinfo);
+  return internetTime;
 }
-void printDigits(int digits) {
+
+void printTime(struct tm timeinfo) {
+  Serial.print("Current date and time: ");
+  Serial.print(timeinfo.tm_year + 1900); // Year since 1900
+  Serial.print("-");
+  printTwoDigits(timeinfo.tm_mon + 1); // Month starts from 0
+  Serial.print("-");
+  printTwoDigits(timeinfo.tm_mday); // Day of the month
+  Serial.print(" ");
+  printTwoDigits(timeinfo.tm_hour); // Hours
+  Serial.print(":");
+  printTwoDigits(timeinfo.tm_min); // Minutes
+  Serial.print(":");
+  printTwoDigits(timeinfo.tm_sec); // Seconds
+  Serial.println();
+}
+
+void printTwoDigits(int digits) {
   // Helper function to print leading 0 if the value is less than 10
   if (digits < 10)
     Serial.print('0');
@@ -271,7 +246,7 @@ void handleRoot() {
   html += "<h1> BẢNG THỐNG KÊ CÔNG SUẤT SỬ DỤNG ĐIỆN </h1>";
   //html += "<p> TEST trạng thái BUILDIN LED : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
   //html += "<p><a href='/toggle'>Bật/Tắt LED</a></p>";
-  html += "<p> Thời gian : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
+  html += "<p id='datetime' > Thời gian : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
 
   // Add text field and button
   html += "<div>";
