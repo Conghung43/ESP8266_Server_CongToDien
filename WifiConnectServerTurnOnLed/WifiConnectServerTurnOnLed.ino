@@ -3,29 +3,26 @@
 #include <ESP8266mDNS.h> 
 #include <FS.h> // Include the SPIFFS library to save data to flash
 #include <ArduinoJson.h> // Include the ArduinoJSON library
-#include <string>
+//#include <string>
+#include <time.h>
+#include <WiFiUdp.h>
+#include <TimeLib.h>
 
 const char* ssid = "Steve'sWIFI";
 const char* password = "ji7ewg1k";
 
-int bac1 = 1728;
-int bac2 = 1786;
-int bac3 = 2074;
-int bac4 = 2612;
-int bac5 = 2919;
-int bac6 = 3015;
+float bac[] = {1.728,1.786,2.074,2.612,2.919,3.015};
 
-int muc1 = 50;
-int muc2 = 100;
-int muc3 = 200;
-int muc4 = 300;
-int muc5 = 400;
-int muc6 = 900;
+int muc[] = {50,100,200,300,400,900};
 
+int tieuThu[] = {50,50,100,56,0,0};
 
 IPAddress subnet(255, 255, 0, 0);			            // Subnet Mask
 IPAddress gateway(192, 168, 1, 1);			            // Default Gateway
 IPAddress local_IP(192, 168, 1, 184);			        // Static IP Address for ESP8266
+
+// Initial board time
+unsigned long boardTime = 0;
 
 ESP8266WebServer server(80);
 
@@ -80,6 +77,102 @@ int getLastElementAsInt(const String &input) {
   } else {
     return -1; // or any default value or error code
   }
+}
+
+
+unsigned long previousMillis = 0;  // Variable to store time
+const long interval = 1000;  // Interval for 1 second
+void getBoardOwnTimer(){
+
+  unsigned long currentMillis = millis();  // Get the current time
+
+  if (currentMillis - previousMillis >= interval) {
+    // If a second has passed
+    previousMillis = currentMillis;
+
+    // Perform an action every second, for example, print the time
+    int seconds = (currentMillis / 1000) % 60;
+    int minutes = (currentMillis / (1000 * 60)) % 60;
+    int hours = (currentMillis / (1000 * 60 * 60)) % 24;
+
+    unsigned long days = currentMillis / (1000ul * 60ul * 60ul * 24ul);
+    int years = 1970 + days / 365;
+    int months = 1 + (days % 365) / 30;
+    int day = 1 + (days % 365) % 30;
+
+    Serial.print(years);
+    Serial.print("/");
+    if (months < 10) {
+      Serial.print("0");
+    }
+    Serial.print(months);
+    Serial.print("/");
+    if (day < 10) {
+      Serial.print("0");
+    }
+    Serial.print(day);
+    Serial.print(" ");
+    if (hours < 10) {
+      Serial.print("0");
+    }
+
+    Serial.print(hours);
+    Serial.print(":");
+    Serial.print(minutes);
+    Serial.print(":");
+    Serial.println(seconds);
+  }
+}
+
+unsigned long convertToMillis(int year, int month, int day, int hour, int minute, int second) {
+  struct tm timeinfo;
+  timeinfo.tm_year = year - 1900;
+  timeinfo.tm_mon = month - 1;
+  timeinfo.tm_mday = day;
+  timeinfo.tm_hour = hour;
+  timeinfo.tm_min = minute;
+  timeinfo.tm_sec = second;
+  return mktime(&timeinfo) * 1000UL;
+}
+
+void getInternetTime() {
+
+  configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov");
+  time_t now = time(nullptr);
+  Serial.println(ctime(&now));
+  return;
+
+  // configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  // struct tm timeinfo;
+  
+  // if (!getLocalTime(&timeinfo)) {
+  //   Serial.println("Failed to obtain time");
+  //   return;
+  // }
+
+  // // GMT+7 adjustment
+  // time_t now = mktime(&timeinfo) + 7 * 3600;
+  // localtime_r(&now, &timeinfo);
+
+  // Serial.print("Current date and time: ");
+  // Serial.print(timeinfo.tm_year + 1900); // Year since 1900
+  // Serial.print("-");
+  // printDigits(timeinfo.tm_mon + 1); // Month starts from 0
+  // Serial.print("-");
+  // printDigits(timeinfo.tm_mday); // Day of the month
+  // Serial.print(" ");
+  // printDigits(timeinfo.tm_hour); // Hours
+  // Serial.print(":");
+  // printDigits(timeinfo.tm_min); // Minutes
+  // Serial.print(":");
+  // printDigits(timeinfo.tm_sec); // Seconds
+  // Serial.println();
+}
+void printDigits(int digits) {
+  // Helper function to print leading 0 if the value is less than 10
+  if (digits < 10)
+    Serial.print('0');
+  Serial.print(digits);
 }
 
 // Save Json
@@ -176,9 +269,9 @@ void handleRoot() {
   String html = "<html><head><meta charset='UTF-8'></head><body>";
   html += "<style>h1 {text-align: center;}</style>";
   html += "<h1> BẢNG THỐNG KÊ CÔNG SUẤT SỬ DỤNG ĐIỆN </h1>";
-  html += "<p> TEST trạng thái BUILDIN LED : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
-  html += "<p><a href='/toggle'>Bật/Tắt LED</a></p>";
-  html += "<canvas id='histogramChart' ></canvas>";
+  //html += "<p> TEST trạng thái BUILDIN LED : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
+  //html += "<p><a href='/toggle'>Bật/Tắt LED</a></p>";
+  html += "<p> Thời gian : " + String(ledState == HIGH ? "On" : "Off") + "</p>";
 
   // Add text field and button
   html += "<div>";
@@ -194,79 +287,79 @@ void handleRoot() {
   html += "<p id='status'>Status: Not Focused</p>";
   html += "</form>";
 
-html += "<table style='width: 100%; border: 1px solid black;'>";
-html += "<tr>";
-html += "<td style='text-align: center;'>Mức</td>";
-html += "<td style='text-align: center;'>Từ (Kwh)</td>";
-html += "<td style='text-align: center;'>Tới (Kwh)</td>";
-html += "<td style='text-align: center;'>Giá điện (Nghin dong)</td>";
-html += "<td style='text-align: center;'>Công suất sử dụng(Kwh)</td>";
-html += "<td style='text-align: center;'>Đơn giá(Nghin dong)</td>";
-html += "</tr>";
-//Muc 1
-html += "<tr>";
-html += "<td style='text-align: center;'>Muc 1</td>";
-html += "<td style='text-align: center;'>0</td>";
-html += "<td style='text-align: center;'><input type='text' id='to1' placeholder='" + String(muc1) + "'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia1'  placeholder='" + String(bac1) + "'></td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "</tr>";
-//Muc 2
-html += "<tr>";
-html += "<td style='text-align: center;'>Muc 2</td>";
-html += "<td style='text-align: center;'>" + String(muc1 + 1) + "</td>";
-html += "<td style='text-align: center;'><input type='text' id='to2' placeholder='" + String(muc2) + "'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia2' placeholder='" + String(bac2) + "'></td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "</tr>";
-//Muc 3
-html += "<tr>";
-html += "<td style='text-align: center;'>Muc 3</td>";
-html += "<td style='text-align: center;'>" + String(muc2 + 1) + "</td>";
-html += "<td style='text-align: center;'><input type='text' id='to3' placeholder='" + String(muc3) + "'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia3' placeholder='" + String(bac3) + "'></td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "</tr>";
-//Muc 4
-html += "<tr>";
-html += "<td style='text-align: center;'>Muc 4</td>";
-html += "<td style='text-align: center;'>" + String(muc3 + 1) + "</td>";
-html += "<td style='text-align: center;'><input type='text' id='to4' placeholder='" + String(muc4) + "'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia4' placeholder='" + String(bac4) + "'></td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "</tr>";
-//Muc 5
-html += "<tr>";
-html += "<td style='text-align: center;'>Muc 5</td>";
-html += "<td style='text-align: center;'>" + String(muc4 + 1) + "</td>";
-html += "<td style='text-align: center;'><input type='text' id='to5' placeholder='" + String(muc5) + "'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia5' placeholder='" + String(bac5) + "'></td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "</tr>";
-//Muc 6
-html += "<tr>";
-html += "<td style='text-align: center;'>Muc 6</td>";
-html += "<td style='text-align: center;'>" + String(muc5 + 1) + "</td>";
-html += "<td style='text-align: center;'><input type='text' id='to6' placeholder='" + String(muc6) + "'></td>";
-html += "<td style='text-align: center;'><input type='text' id='gia6' placeholder='" + String(bac6) + "'></td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "<td style='text-align: center;'>50</td>";
-html += "</tr>";
-//Tong so
-html += "<tr>";
-html += "<td style='text-align: center;'> </td>";
-html += "<td style='text-align: center;'>  </td>";
-html += "<td style='text-align: center;'>  </td>";
-html += "<td style='text-align: center;'>  </td>";
-html += "<td style='text-align: center;'> Tong </td>";
-html += "<td style='text-align: center;'> 500 </td>";
-html += "</tr>";
-html += "</table>";
+  html += "<table style='width: 100%; border: 1px solid black;'>";
+  html += "<tr>";
+  html += "<td style='text-align: center;'>Mức</td>";
+  html += "<td style='text-align: center;'>Từ (Kwh)</td>";
+  html += "<td style='text-align: center;'>Tới (Kwh)</td>";
+  html += "<td style='text-align: center;'>Giá điện (Nghìn đồng)</td>";
+  html += "<td style='text-align: center;'>Công suất sử dụng(Kwh)</td>";
+  html += "<td style='text-align: center;'>Đơn giá(Nghìn đồng)</td>";
+  html += "</tr>";
+  //Muc 1
+  html += "<tr>";
+  html += "<td style='text-align: center;'>Mức 1</td>";
+  html += "<td style='text-align: center;'>0</td>";
+  html += "<td style='text-align: center;'><input type='text' id='to1' placeholder='" + String(muc[0]) + "'></td>";
+  html += "<td style='text-align: center;'><input type='text' id='gia1'  placeholder='" + String(bac[0]) + "'></td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[0]) + "</td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[0]*bac[0]) + "</td>";
+  html += "</tr>";
+  //Muc 2
+  html += "<tr style='text-align: center; border: 1px solid black;'>";
+  html += "<td style='text-align: center;'>Mức 2</td>";
+  html += "<td style='text-align: center;'>" + String(muc[0] + 1) + "</td>";
+  html += "<td style='text-align: center;'><input type='text' id='to2' placeholder='" + String(muc[1]) + "'></td>";
+  html += "<td style='text-align: center;'><input type='text' id='gia2' placeholder='" + String(bac[1]) + "'></td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[1]) + "</td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[1]*bac[1]) + "</td>";
+  html += "</tr>";
+  //Muc 3
+  html += "<tr>";
+  html += "<td style='text-align: center;'>Mức 3</td>";
+  html += "<td style='text-align: center;'>" + String(muc[1] + 1) + "</td>";
+  html += "<td style='text-align: center;'><input type='text' id='to3' placeholder='" + String(muc[2]) + "'></td>";
+  html += "<td style='text-align: center;'><input type='text' id='gia3' placeholder='" + String(bac[2]) + "'></td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[2]) + "</td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[2]*bac[2]) + "</td>";
+  html += "</tr>";
+  //Muc 4
+  html += "<tr>";
+  html += "<td style='text-align: center;'>Mức 4</td>";
+  html += "<td style='text-align: center;'>" + String(muc[2] + 1) + "</td>";
+  html += "<td style='text-align: center;'><input type='text' id='to4' placeholder='" + String(muc[3]) + "'></td>";
+  html += "<td style='text-align: center;'><input type='text' id='gia4' placeholder='" + String(bac[3]) + "'></td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[3]) + "</td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[3]*bac[3]) + "</td>";
+  html += "</tr>";
+  //Muc 5
+  html += "<tr>";
+  html += "<td style='text-align: center;'>Mức 5</td>";
+  html += "<td style='text-align: center;'>" + String(muc[3] + 1) + "</td>";
+  html += "<td style='text-align: center;'><input type='text' id='to5' placeholder='" + String(muc[4]) + "'></td>";
+  html += "<td style='text-align: center;'><input type='text' id='gia5' placeholder='" + String(bac[4]) + "'></td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[4]) + "</td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[4]*bac[4]) + "</td>";
+  html += "</tr>";
+  //Muc 6
+  html += "<tr>";
+  html += "<td style='text-align: center;'>Mức 6</td>";
+  html += "<td style='text-align: center;'>" + String(muc[4] + 1) + "</td>";
+  html += "<td style='text-align: center;'><input type='text' id='to6' placeholder='" + String(muc[5]) + "'></td>";
+  html += "<td style='text-align: center;'><input type='text' id='gia6' placeholder='" + String(bac[5]) + "'></td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[5]) + "</td>";
+  html += "<td style='text-align: center;'>" + String(tieuThu[5]*bac[5]) + "</td>";
+  html += "</tr>";
+  //Tong so
+  html += "<tr>";
+  html += "<td style='text-align: center;'> </td>";
+  html += "<td style='text-align: center;'>  </td>";
+  html += "<td style='text-align: center;'>  </td>";
+  html += "<td style='text-align: center;'>  </td>";
+  html += "<td style='text-align: center;'> Tổng </td>";
+  html += "<td style='text-align: center;'> " + String(tieuThu[0]*bac[0]+tieuThu[1]*bac[1]+tieuThu[2]*bac[2]+tieuThu[3]*bac[3]+tieuThu[4]*bac[4]+tieuThu[5]*bac[5]) + " </td>";
+  html += "</tr>";
+  html += "</table>";
 
 
 
@@ -292,6 +385,8 @@ html += "</table>";
   html += "  inputField.value = inputField.value.replace(/\\D/g, '');";
   html += "}";
   html += "</script>";
+
+  html += "<canvas id='histogramChart' ></canvas>";
 
   html += "<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js'></script>";
   html += "<script>";
@@ -380,6 +475,9 @@ void setup() {
   }
   Serial.println("Connected to WiFi");
 
+  // Initialize and set the time
+  getInternetTime();
+
   server.on("/", handleRoot);
   server.on("/toggle", handleToggle);
 
@@ -409,4 +507,5 @@ void setup() {
 void loop() {
   MDNS.update();
   server.handleClient();
+  getBoardOwnTimer();
 }
